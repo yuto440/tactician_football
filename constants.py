@@ -1,0 +1,34 @@
+from enum import Enum, auto
+
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT= 600
+
+FIELD_WIDTH = 800
+FIELD_HEIGHT = 500
+
+LINE_WIDTH = 4
+
+GOAL_WIDTH = 200
+
+BALL_RADIUS = 10
+
+PLAYER_RADIUS = 20
+
+PLAYER_SPEED = 100
+
+BALL_FRICTION_ACCEL = 100
+
+ELASTICITY = 0.8
+
+FPS = 60
+
+#色
+GRASS_COLOR = (100, 255, 100)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+
+class TeamID(Enum):
+    TEAM_A = auto()
+    TEAM_B = auto()
