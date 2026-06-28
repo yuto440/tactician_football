@@ -40,15 +40,7 @@ class FSMPlayer(Player):
                     t = (1 + moving_away_rate) * ball_speed / c.PLAYER_SPEED * 0.8
 
                 predicted_ball_pos = ball_info.pos + ball_info.velocity * t
-                to_target = predicted_ball_pos - self.pos
-                if to_target.length_squared() > 0:
-                    self.velocity = to_target.normalize() * c.PLAYER_SPEED
+                self.run(predicted_ball_pos)
 
             case State.DIFFENSE_RETURN:
-                to_home = self.initial_pos - self.pos
-                if to_home.length_squared() > (c.PLAYER_SPEED / c.FPS) ** 2:
-                    n_to_home = to_home.normalize()
-                    self.velocity = c.PLAYER_SPEED * n_to_home
-                else:
-                    self.pos = pygame.math.Vector2(self.initial_pos)
-                    self.velocity = pygame.math.Vector2(0, 0)
+                self.run(self.initial_pos)

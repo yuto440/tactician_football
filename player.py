@@ -12,6 +12,8 @@ class Player:
 
         self.velocity: pygame.math.Vector2 = pygame.math.Vector2(0, 0)
 
+        self.angle: float = 0.0
+
         self.team_id: c.TeamID = None
         self.goal_pos_x: int = None
 
@@ -22,13 +24,35 @@ class Player:
     def reset(self) -> None:
         self.pos = pygame.math.Vector2(self.initial_pos)
         self.velocity = pygame.math.Vector2(0, 0)
+        self.angle = 0.0
         self.knockback_timer = 0
 
-    def think(self, ball_info: BallInfo, player_infos: list[PlayerInfo]) -> None:
-        to_ball = ball_info.pos - self.pos
+    def run(self, target_pos: pygame.math.Vector2):
+        to_target_pos = target_pos - self.pos
+        distance, to_target_angle = to_target_pos.as_polar()
 
-        if to_ball.length_squared() > 0:
-            self.velocity = to_ball.normalize() * c.PLAYER_SPEED
+        if distance < 2:
+            self.velocity = pygame.math.Vector2(0, 0)
+            return
+        
+        self.angle = to_target_angle
+
+        #目的地方向を向いているか判定
+        dir_vector = pygame.math.Vector2(1, 0).rotate(self.angle)
+        target_dir = to_target_pos.normalize()
+        front_factor = dir_vector.dot(target_dir)
+
+        if front_factor > 0.95:
+            current_speed = c.PLAYER_SPEED
+        else:
+            current_speed = c.PLAYER_SPEED * 0.2
+
+        self.velocity = target_dir * current_speed
+        
+
+
+    def think(self, ball_info: BallInfo, player_infos: list[PlayerInfo]) -> None:
+        self.run(ball_info.pos)
 
     def trigger_knockback(self, n_player_to_ball: pygame.math.Vector2) -> None:
         self.knockback_timer = 0.5  # 0.5秒間ノックバック
@@ -47,6 +71,19 @@ class Player:
 
     def draw(self, screen: Any) -> None:
         pygame.draw.circle(screen, self.color, (int(self.pos.x), int(self.pos.y)), c.PLAYER_RADIUS)
+
+        #腕の表示
+        direction_vector = pygame.math.Vector2(1, 0).rotate(self.angle)
+        right_arm_vector = direction_vector.rotate(70.0)
+        left_arm_vector = direction_vector.rotate(-70.0)
+
+        line_len = c.PLAYER_RADIUS * 1.3
+        right_end_pos = self.pos + right_arm_vector * line_len
+        left_end_pos = self.pos + left_arm_vector * line_len
+
+        pygame.draw.line(screen, c.BLACK, (int(self.pos.x), int(self.pos.y)), (int(right_end_pos.x), int(right_end_pos.y)), 3)
+        pygame.draw.line(screen, c.BLACK, (int(self.pos.x), int(self.pos.y)), (int(left_end_pos.x), int(left_end_pos.y)), 3)
+
 
 
 class PlayerInfo:
