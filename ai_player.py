@@ -31,17 +31,13 @@ class FSMPlayer(Player):
         match self.state:
             case State.OFFENSE_CHASE:#ボールを追いかける
                 t = 0.0
-                if dist_to_ball_sq > 0:
+                ball_speed = ball_info.velocity.length()
+                if dist_to_ball_sq > 0 and ball_speed > 0:
                     n_to_ball = to_ball.normalize()
-                    moving_away_speed = ball_info.velocity.dot(n_to_ball)
+                    n_ball_speed = ball_info.velocity.normalize()
+                    moving_away_rate = n_ball_speed.dot(n_to_ball)
 
-                    if moving_away_speed < -150:
-                        t = 0.0
-                    elif moving_away_speed < 20:#速度の遠ざかる方向がプラスかどうか
-                        t = -moving_away_speed / c.PLAYER_SPEED
-                    
-                else: 
-                    t = 0.5
+                    t = (1 + moving_away_rate) * ball_speed / c.PLAYER_SPEED * 0.8
 
                 predicted_ball_pos = ball_info.pos + ball_info.velocity * t
                 to_target = predicted_ball_pos - self.pos
