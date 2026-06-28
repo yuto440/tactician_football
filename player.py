@@ -14,6 +14,8 @@ class Player:
 
         self.angle: float = 0.0
 
+        self.turn_speed: float = 0
+
         self.team_id: c.TeamID = None
         self.goal_pos_x: int = None
 
@@ -24,18 +26,19 @@ class Player:
     def reset(self) -> None:
         self.pos = pygame.math.Vector2(self.initial_pos)
         self.velocity = pygame.math.Vector2(0, 0)
-        self.angle = 0.0
+        if self.goal_pos_x is not None:
+            goal_dir = pygame.math.Vector2(self.goal_pos_x, self.pos.y) - self.pos
+            _, self.angle = goal_dir.as_polar()
         self.knockback_timer = 0
 
     def run(self, target_pos: pygame.math.Vector2):
+        self.turn_towards(target_pos)
         to_target_pos = target_pos - self.pos
         distance, to_target_angle = to_target_pos.as_polar()
 
         if distance < 2:
             self.velocity = pygame.math.Vector2(0, 0)
             return
-        
-        self.angle = to_target_angle
 
         #目的地方向を向いているか判定
         dir_vector = pygame.math.Vector2(1, 0).rotate(self.angle)
@@ -48,7 +51,30 @@ class Player:
             current_speed = c.PLAYER_SPEED * 0.2
 
         self.velocity = target_dir * current_speed
+
+    def turn_towards(self, target:pygame.math.Vector2):
+        to_target = target - self.pos
+
+        if to_target.length_squared() < 0.01:
+            self.turn_speed = 0.0
+            return 0.0
         
+        current_dir = pygame.math.Vector2(1, 0).rotate(self.angle)
+
+        angle_diff = current_dir.angle_to(to_target)
+
+        if angle_diff > 0.1:
+            self.turn_speed = c.PLAYER_TURN_SPEED
+        elif angle_diff < -0.1:
+            self.turn_speed = -c.PLAYER_TURN_SPEED
+        else:
+            self.turn_speed = 0.0
+
+        self.angle = (self.angle + 180) % 360 - 180
+
+        return angle_diff
+
+
 
 
     def think(self, ball_info: BallInfo, player_infos: list[PlayerInfo]) -> None:
@@ -57,6 +83,7 @@ class Player:
     def trigger_knockback(self, n_player_to_ball: pygame.math.Vector2) -> None:
         self.knockback_timer = 0.5  # 0.5秒間ノックバック
         self.velocity = -n_player_to_ball * c.PLAYER_SPEED
+        self.turn_speed = 0.0
 
     def update_ai(self, ball_info: BallInfo, player_infos: list[PlayerInfo]):
         if self.knockback_timer == 0:
@@ -67,6 +94,7 @@ class Player:
             self.knockback_timer = max(0.0, self.knockback_timer - dt)
 
         self.pos += self.velocity * dt
+        self.angle += self.turn_speed * dt
 
 
     def draw(self, screen: Any) -> None:

@@ -66,6 +66,8 @@ class GameController:
 
         self.score_font = pygame.font.Font(None, 70)
 
+        self.reset()
+
     def reset(self):
         for player in self.players:
             player.reset()
