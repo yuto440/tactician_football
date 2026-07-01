@@ -1,10 +1,24 @@
 import pygame
 import constants as c
+import random
 
 class Ball:
     def __init__(self, pos: pygame.math.Vector2) -> None:
         self.pos: pygame.math.Vector2 = pos
         self.velocity: pygame.math.Vector2 = pygame.math.Vector2(0, 0)
+
+    def apply_kick(self, target: pygame.math.Vector2, power: float):
+        power = min(power, c.MAX_BALL_SPEED)
+        direction = target - self.pos
+        
+        if direction.length_squared() > 0.01:
+            self.velocity = direction.normalize() * power
+        else:
+            self.velocity = pygame.math.Vector2(0, 0)
+
+        random_angle = random.uniform(-1, 1)
+        self.velocity.rotate(random_angle)
+
 
     def update(self, dt: float) -> None:
         self.apply_friction(dt)
@@ -28,14 +42,17 @@ class Ball:
         pygame.draw.circle(screen, c.WHITE, (int(self.pos.x), int(self.pos.y)), c.BALL_RADIUS)
 
 
-class BallInfo:
+class BallInferface:
     def __init__(self, ball: Ball):
         self._ball = ball
 
     @property
     def pos(self):
-        return self._ball.pos
+        return self._ball.pos.copy()
     
     @property
     def velocity(self):
-        return self._ball.velocity
+        return self._ball.velocity.copy()
+    
+    def apply_kick(self, target:pygame.math.Vector2, power: float):
+        self._ball.apply_kick(target, power)

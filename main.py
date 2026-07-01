@@ -21,7 +21,7 @@ class GameController:
         self.field_rect.center = self.screen.get_rect().center
 
         self.ball: Ball = Ball(pygame.math.Vector2(c.SCREEN_WIDTH // 2, c.SCREEN_HEIGHT // 2))  # ボールの生成
-        self.ball_info = BallInfo(self.ball)
+        self.ball_interface = BallInferface(self.ball)
 
         self.teams: list[Team] = [Team(c.TeamID.TEAM_A, self.field_rect.right , c.RED), Team(c.TeamID.TEAM_B, self.field_rect.left ,c.BLUE)]
 
@@ -37,12 +37,12 @@ class GameController:
             positions.append(row_positions)
 
         self.players: list[Player] = [
-            FSMPlayer(positions[1][0]),
-            FSMPlayer(positions[1][4]),
-            Player(positions[3][2]),
-            FSMPlayer(positions[7][0]),
-            FSMPlayer(positions[7][4]),
-            Player(positions[5][2])
+            FSMPlayer(positions[1][0], self.field_rect),
+            FSMPlayer(positions[1][4], self.field_rect),
+            Player(positions[3][2], self.field_rect),
+            FSMPlayer(positions[7][0], self.field_rect),
+            FSMPlayer(positions[7][4], self.field_rect),
+            Player(positions[5][2], self.field_rect)
         ]
         self.num_players: int = len(self.players)
 
@@ -78,7 +78,6 @@ class GameController:
     def resolve_collisions(self): #衝突をまとめて解決
         self._check_wall_and_ball()
         self._check_posts_and_ball()
-        self._check_player_and_ball()
         self._check_player_and_player()
         return None
 
@@ -123,38 +122,6 @@ class GameController:
                 if v_dot_n < 0:
                     self.ball.velocity -= 2 * v_dot_n * n_post_to_ball
 
-    def _check_player_and_ball(self):
-        for player in self.players:
-            player_to_ball = self.ball.pos - player.pos
-            dist_sq = player_to_ball.length_squared()
-
-            min_distance = c.PLAYER_RADIUS + c.BALL_RADIUS
-
-            if dist_sq < min_distance * min_distance: #衝突判定
-                if dist_sq > 0: #ゼロベクトルでなければ正規化
-                    distance = dist_sq ** 0.5
-                    n_player_to_ball = player_to_ball / distance
-                else:
-                    n_player_to_ball = pygame.math.Vector2(1, 0)
-                    distance = 0
-
-                #重なっている分を移動
-                overlap = min_distance - distance
-                self.ball.pos += n_player_to_ball * overlap
-
-                relative_velocity = self.ball.velocity - player.velocity
-
-                #相対速度と正規化した相対位置の内積
-                v_dot_n = relative_velocity.dot(n_player_to_ball)
-
-                #遠ざかる方向へ、つまりv_dot_nがプラスになる方向へ速度を変更
-                if v_dot_n < 0:
-                    self.ball.velocity -= (1.0 + c.ELASTICITY) * n_player_to_ball * v_dot_n
-                    #ランダムに少しずれを作る
-                    random_angle = random.uniform(-1, 1)
-                    self.ball.velocity = self.ball.velocity.rotate(random_angle)
-
-                player.trigger_knockback(n_player_to_ball)
     def _check_player_and_player(self):
         for i in range(0, self.num_players - 1):
             for j in range(i + 1, self.num_players):#プレイヤー同士のすべての組み合わせを一度ずつ処理
@@ -235,7 +202,7 @@ class GameController:
             self.ball.update(dt)
             
             for player in self.players:
-                player.update_ai(self.ball_info, self.player_infos)
+                player.update_ai(self.ball_interface, self.player_infos)
 
             for player in self.players:
                 player.update(dt)

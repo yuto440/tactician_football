@@ -6,7 +6,7 @@ from ball import *
 from typing import Any
 
 class Player:
-    def __init__(self, pos: pygame.math.Vector2) -> None:
+    def __init__(self, pos: pygame.math.Vector2, field_rect) -> None:
         self.pos: pygame.math.Vector2 = pos
         self.initial_pos: pygame.math.Vector2 = pygame.math.Vector2(pos)
 
@@ -19,9 +19,11 @@ class Player:
         self.team_id: c.TeamID = None
         self.goal_pos_x: int = None
 
+        self.field_rect: pygame.rect = field_rect
+
         self.color: tuple[int, int, int] = c.BLACK
 
-        self.knockback_timer: float = 0.0
+        self.kick_cool_time: float = 0.0
 
     def reset(self) -> None:
         self.pos = pygame.math.Vector2(self.initial_pos)
@@ -29,14 +31,28 @@ class Player:
         if self.goal_pos_x is not None:
             goal_dir = pygame.math.Vector2(self.goal_pos_x, self.pos.y) - self.pos
             _, self.angle = goal_dir.as_polar()
-        self.knockback_timer = 0
+        self.kick_cool_time = 0
+
+    def can_kick(self, ball_interface: BallInferface) -> bool:
+        to_ball = ball_interface.pos - self.pos
+        dist_to_ball_sq = to_ball.length_squared()
+        reach_magin = 3.0
+        min_dist_sq = (c.BALL_RADIUS + c.PLAYER_RADIUS + reach_magin) ** 2
+
+        return dist_to_ball_sq < min_dist_sq * 1.1 and self.kick_cool_time <= 0
+    
+    def kick(self, ball_interface: BallInferface, target: pygame.math.Vector2, power: float) -> bool:
+        if self.can_kick(ball_interface):
+            ball_interface.apply_kick(target, power)
+            self.kick_cool_time = 1.0
+
 
     def run(self, target_pos: pygame.math.Vector2):
         self.turn_towards(target_pos)
         to_target_pos = target_pos - self.pos
-        distance, to_target_angle = to_target_pos.as_polar()
+        distance_sq = to_target_pos.length_squared()
 
-        if distance < 2:
+        if distance_sq < 2:
             self.velocity = pygame.math.Vector2(0, 0)
             return
 
@@ -63,6 +79,9 @@ class Player:
 
         angle_diff = current_dir.angle_to(to_target)
 
+        angle_diff = (angle_diff - 180) % 360 -180
+        
+
         if angle_diff > 0.1:
             self.turn_speed = c.PLAYER_TURN_SPEED
         elif angle_diff < -0.1:
@@ -70,31 +89,27 @@ class Player:
         else:
             self.turn_speed = 0.0
 
-        self.angle = (self.angle + 180) % 360 - 180
-
         return angle_diff
 
 
 
 
-    def think(self, ball_info: BallInfo, player_infos: list[PlayerInfo]) -> None:
-        self.run(ball_info.pos)
+    def think(self, ball_interface: BallInferface, player_infos: list[PlayerInfo]) -> None:
+        self.run(ball_interface.pos)
+        goal_pos = pygame.math.Vector2(self.goal_pos_x, self.field_rect.centery)
+        self.kick(ball_interface, goal_pos, c.MAX_BALL_SPEED)
 
-    def trigger_knockback(self, n_player_to_ball: pygame.math.Vector2) -> None:
-        self.knockback_timer = 0.5  # 0.5秒間ノックバック
-        self.velocity = -n_player_to_ball * c.PLAYER_SPEED
-        self.turn_speed = 0.0
-
-    def update_ai(self, ball_info: BallInfo, player_infos: list[PlayerInfo]):
-        if self.knockback_timer == 0:
-            self.think(ball_info, player_infos)
+    def update_ai(self, ball_interface: BallInferface, player_infos: list[PlayerInfo]):
+        self.think(ball_interface, player_infos)
 
     def update(self, dt: float) -> None:
-        if self.knockback_timer > 0.0:
-            self.knockback_timer = max(0.0, self.knockback_timer - dt)
+        if self.kick_cool_time > 0.0:
+            self.kick_cool_time = max(0.0, self.kick_cool_time - dt)
 
         self.pos += self.velocity * dt
         self.angle += self.turn_speed * dt
+
+        self.angle = (self.angle + 180) % 360 - 180
 
 
     def draw(self, screen: Any) -> None:
