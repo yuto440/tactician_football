@@ -14,6 +14,13 @@ class FSMPlayer(Player):
         
 
     def think(self, ball_interface, player_infos) -> None:
+        if self.can_kick(ball_interface):
+            my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
+            rand_angle = random.randint(-70, 70)
+            ball_direction = my_direction.rotate(rand_angle)
+            ball_target = ball_direction * 100 + self.pos
+            self.kick(ball_interface, ball_target, c.MAX_BALL_SPEED)
+            
         to_ball = ball_interface.pos - self.pos
         dist_to_ball_sq = to_ball.length_squared()
 

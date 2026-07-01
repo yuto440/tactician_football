@@ -39,10 +39,10 @@ class GameController:
         self.players: list[Player] = [
             FSMPlayer(positions[1][0], self.field_rect),
             FSMPlayer(positions[1][4], self.field_rect),
-            Player(positions[3][2], self.field_rect),
+            FSMPlayer(positions[3][2], self.field_rect),
             FSMPlayer(positions[7][0], self.field_rect),
             FSMPlayer(positions[7][4], self.field_rect),
-            Player(positions[5][2], self.field_rect)
+            FSMPlayer(positions[5][2], self.field_rect)
         ]
         self.num_players: int = len(self.players)
 
