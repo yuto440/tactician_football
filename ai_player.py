@@ -30,14 +30,21 @@ class FSMPlayer(Player):
 
         match self.state:
             case State.OFFENSE_CHASE:#ボールを追いかける
-                t = 0.0
-                ball_speed = ball_info.velocity.length()
-                if dist_to_ball_sq > 0 and ball_speed > 0:
-                    n_to_ball = to_ball.normalize()
-                    n_ball_speed = ball_info.velocity.normalize()
-                    moving_away_rate = n_ball_speed.dot(n_to_ball)
+                t = 0
+                coeff_a = ball_info.velocity.length_squared() - c.PLAYER_SPEED ** 2
+                coeff_b = to_ball.dot(ball_info.velocity)
+                coeff_c = to_ball.length_squared()
 
-                    t = (1 + moving_away_rate) * ball_speed / c.PLAYER_SPEED * 0.8
+                discriminant = coeff_b ** 2 - coeff_a * coeff_c
+
+                if abs(coeff_a) > 0.01 and discriminant >= 0:
+                    t = (-coeff_b - discriminant ** 0.5) / coeff_a
+                elif discriminant < 0:
+                    t = 0
+                else:
+                    t = -coeff_c / (2 * coeff_b)
+
+                t = min(max(0, t), 1)
 
                 predicted_ball_pos = ball_info.pos + ball_info.velocity * t
                 self.run(predicted_ball_pos)
