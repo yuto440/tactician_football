@@ -4,6 +4,7 @@ import random
 import pygame
 import constants as c
 from ball import *
+from infos import BallInterface
 from match_analysis import MatchAnalysis
 from typing import Any
 
