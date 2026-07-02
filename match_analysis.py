@@ -9,7 +9,7 @@ class MatchAnalysis:
         self.player_infos: list[PlayerInfo] = player_infos
         self.player_info_dict = {p.player_id: p for p in self.player_infos}
 
-        self.player_to_ball_vectors = []
+        self.player_to_ball_vectors = {}
 
         self.ball_proximity_ranking = []
         self.ball_proximity_list_by_id = {}
@@ -20,8 +20,9 @@ class MatchAnalysis:
     def update(self):
         raw_list = []
         for player_info in self.player_infos:
+            #print(player_info.player_id)
             p_to_b = self.ball_interface.pos - player_info.pos
-            self.player_to_ball_vectors.append((player_info, p_to_b))
+            self.player_to_ball_vectors[player_info.player_id] = (player_info, p_to_b)
             distanse_sq = p_to_b.length_squared()
             raw_list.append((player_info, distanse_sq))
 

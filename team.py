@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import List, Tuple, TYPE_CHECKING
 import pygame
-from player import Player
 import constants as c
 
+if TYPE_CHECKING:
+    from player import Player
 
 class Team:
     def __init__(self, team_id: c.TeamID, goal_pos: pygame.math.Vector2, color: Tuple[int, int, int]) -> None:

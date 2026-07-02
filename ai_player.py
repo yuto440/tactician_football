@@ -42,7 +42,8 @@ class FSMPlayer(Player):
                 self.Kicking_state = None
 
                 # 自チーム内で最もボールに近い選手かどうかで役割を切り替える
-        closest_player, _ = match_analysis.ball_proximity_list_by_team[0]
+        team_closest_rangikg = match_analysis.ball_proximity_list_by_team[self.team_id]
+        closest_player, _ = team_closest_rangikg[0]
         if closest_player.player_id == self.player_id:
             self.moving_state = MovingState.OFFENSE_CHASE
         else:
@@ -59,16 +60,17 @@ class FSMPlayer(Player):
                     my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
                     rand_angle = random.randint(-180, 180)
                     ball_direction = my_direction.rotate(rand_angle)
-                    ball_target = ball_direction * 100 + ball_interface.pos
-                    self.kick(ball_interface, ball_target, c.MAX_BALL_SPEED)
+                    ball_target = ball_direction * 100 + match_analysis.ball_interface.pos
+                    self.kick(match_analysis.ball_interface, ball_target, c.MAX_BALL_SPEED)
 
     def _handle_movement(self, match_analysis: MatchAnalysis):
                 # 状態に応じて移動先を決める
         match self.moving_state:
             case MovingState.OFFENSE_CHASE:  # ボールを追いかける
                 t = 0
+                _, player_to_ball = match_analysis.player_to_ball_vectors[self.player_id]
                 coeff_a = match_analysis.ball_interface.velocity.length_squared() - c.PLAYER_SPEED ** 2
-                coeff_b = match_analysis.player_to_ball_vectors[self.player_id].dot(match_analysis.ball_interface.velocity)
+                coeff_b = player_to_ball.dot(match_analysis.ball_interface.velocity)
                 _, coeff_c = match_analysis.ball_proximity_list_by_id[self.player_id]
 
                 discriminant = coeff_b ** 2 - coeff_a * coeff_c

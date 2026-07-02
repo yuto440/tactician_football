@@ -1,7 +1,11 @@
-from player import Player
-from ball import Ball
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import pygame
 
+if TYPE_CHECKING:
+    from player import Player
+    from ball import Ball
 
 class PlayerInfo:
     def __init__(self, player: Player):
