@@ -24,7 +24,8 @@ class GameController:
         self.ball: Ball = Ball(pygame.math.Vector2(c.SCREEN_WIDTH // 2, c.SCREEN_HEIGHT // 2))  # ボールの生成
         self.ball_interface = BallInferface(self.ball)
 
-        self.teams: list[Team] = [Team(c.TeamID.TEAM_A, self.field_rect.right , c.RED), Team(c.TeamID.TEAM_B, self.field_rect.left ,c.BLUE)]
+        self.teams: list[Team] = [Team(c.TeamID.TEAM_A, pygame.math.Vector2(self.field_rect.midright) , c.RED),
+                                Team(c.TeamID.TEAM_B, pygame.math.Vector2(self.field_rect.midleft) ,c.BLUE)]
 
 
         # フィールドを9×5のグリッドに分け、プレイヤーの初期位置を決める
@@ -152,10 +153,10 @@ class GameController:
 
     def goal_check(self):
         # ゴール判定を行い、得点したら試合をリセットする
-        if self.ball.pos.x + c.BALL_RADIUS < self.teams[1].goal_pos_x:
+        if self.ball.pos.x + c.BALL_RADIUS < self.teams[1].goal_pos.x:
             self.teams[1].score +=1
             self.reset()
-        elif self.ball.pos.x - c.BALL_RADIUS> self.teams[0].goal_pos_x:
+        elif self.ball.pos.x - c.BALL_RADIUS> self.teams[0].goal_pos.x:
             self.teams[0].score +=1
             self.reset()
         return None

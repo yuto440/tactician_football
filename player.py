@@ -19,7 +19,7 @@ class Player:
         self.turn_speed: float = 0
 
         self.team_id: c.TeamID = None
-        self.goal_pos_x: int = None
+        self.goal_pos: pygame.math.Vector2 = None
 
         self.field_rect: pygame.rect = field_rect
 
@@ -30,8 +30,8 @@ class Player:
     def reset(self) -> None:
         self.pos = pygame.math.Vector2(self.initial_pos)
         self.velocity = pygame.math.Vector2(0, 0)
-        if self.goal_pos_x is not None:
-            goal_dir = pygame.math.Vector2(self.goal_pos_x, self.pos.y) - self.pos
+        if self.goal_pos is not None:
+            goal_dir = self.goal_pos - self.pos
             _, self.angle = goal_dir.as_polar()
         self.kick_cool_time = 0
 
