@@ -19,37 +19,35 @@ class FSMPlayer(Player):
         self.Kicking_state:KickingState = None
         
 
-    def think(self, ball_interface, player_infos) -> None:
+    def update_ai(self, ball_interface: BallInterface, player_infos: list[PlayerInfo]) -> None:
+        to_ball = ball_interface.pos - self.pos
+        dist_to_ball_sq = to_ball.length_squared()
+
+        self._update_state(dist_to_ball_sq, ball_interface, player_infos)
+        self._handle_kicking(ball_interface)
+        self._handle_movement(to_ball, dist_to_ball_sq, ball_interface)
+
+
+    def _update_state(self, dist_to_ball_sq: float, ball_interface: BallInterface, player_infos:list[PlayerInfo]):
         to_goal = self.goal_pos - self.pos
         dist_to_goal_sq = to_goal.length_squared()
+
+        shot_range = 300
+        shot_range_margin = 10
+
         if self.Kicking_state == None:
-            if dist_to_goal_sq < 90000:
+            if dist_to_goal_sq < shot_range ** 2:
                 self.Kicking_state = KickingState.SHOT
             else:
                 self.Kicking_state = None
         elif self.Kicking_state == KickingState.SHOT:
-            if dist_to_goal_sq > 96100:
+            if dist_to_goal_sq > shot_range ** 2 + shot_range_margin ** 2:
                 self.Kicking_state = None
 
-        if self.can_kick(ball_interface):
-            match self.Kicking_state:
-                case KickingState.SHOT:
-                    self.kick(ball_interface, self.goal_pos, c.MAX_BALL_SPEED)
-                    print(f"{self.team_id.name} shot!!")
-                case None:
-                    my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
-                    rand_angle = random.randint(-180, 180)
-                    ball_direction = my_direction.rotate(rand_angle)
-                    ball_target = ball_direction * 100 + self.pos
-                    self.kick(ball_interface, ball_target, c.MAX_BALL_SPEED)
-            
-        to_ball = ball_interface.pos - self.pos
-        dist_to_ball_sq = to_ball.length_squared()
-
-        # 自チーム内で最もボールに近い選手かどうかで役割を切り替える
+                # 自チーム内で最もボールに近い選手かどうかで役割を切り替える
         self.moving_state = MovingState.OFFENSE_CHASE
         for player in player_infos:
-            if player.team_id == self.team_id:
+            if player.team_id == self.team_id and (player.pos - self.pos).length_squared() > 0.01:
                 player_to_ball = ball_interface.pos - player.pos
                 dist_player_to_ball_sq = player_to_ball.length_squared()
                 if dist_player_to_ball_sq < dist_to_ball_sq:
@@ -57,13 +55,27 @@ class FSMPlayer(Player):
                     break
 
 
-        # 状態に応じて移動先を決める
+    def _handle_kicking(self, ball_interface:BallInterface):
+        if self.can_kick(ball_interface):
+            match self.Kicking_state:
+                case KickingState.SHOT:
+                    if not self.kick(ball_interface, self.goal_pos, c.MAX_BALL_SPEED):
+                        self.Kicking_state = None
+                case None:
+                    my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
+                    rand_angle = random.randint(-180, 180)
+                    ball_direction = my_direction.rotate(rand_angle)
+                    ball_target = ball_direction * 100 + ball_interface.pos
+                    self.kick(ball_interface, ball_target, c.MAX_BALL_SPEED)
+
+    def _handle_movement(self, to_ball: pygame.math.Vector2, dist_to_ball_sq: float, ball_interface: BallInterface):
+                # 状態に応じて移動先を決める
         match self.moving_state:
             case MovingState.OFFENSE_CHASE:  # ボールを追いかける
                 t = 0
                 coeff_a = ball_interface.velocity.length_squared() - c.PLAYER_SPEED ** 2
                 coeff_b = to_ball.dot(ball_interface.velocity)
-                coeff_c = to_ball.length_squared()
+                coeff_c = dist_to_ball_sq
 
                 discriminant = coeff_b ** 2 - coeff_a * coeff_c
 

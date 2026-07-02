@@ -22,7 +22,7 @@ class GameController:
         self.field_rect.center = self.screen.get_rect().center
 
         self.ball: Ball = Ball(pygame.math.Vector2(c.SCREEN_WIDTH // 2, c.SCREEN_HEIGHT // 2))  # ボールの生成
-        self.ball_interface = BallInferface(self.ball)
+        self.ball_interface = BallInterface(self.ball)
 
         self.teams: list[Team] = [Team(c.TeamID.TEAM_A, pygame.math.Vector2(self.field_rect.midright) , c.RED),
                                 Team(c.TeamID.TEAM_B, pygame.math.Vector2(self.field_rect.midleft) ,c.BLUE)]

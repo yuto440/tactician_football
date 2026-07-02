@@ -46,7 +46,7 @@ class Ball:
         pygame.draw.circle(screen, c.WHITE, (int(self.pos.x), int(self.pos.y)), c.BALL_RADIUS)
 
 
-class BallInferface:
+class BallInterface:
     def __init__(self, ball: Ball):
         self._ball = ball
 

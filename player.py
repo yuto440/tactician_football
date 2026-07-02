@@ -35,7 +35,7 @@ class Player:
             _, self.angle = goal_dir.as_polar()
         self.kick_cool_time = 0
 
-    def can_kick(self, ball_interface: BallInferface) -> bool:
+    def can_kick(self, ball_interface: BallInterface) -> bool:
         # クールタイムと距離・角度から、ボールを蹴れるか判定する
         if self.kick_cool_time > 0: return False
 
@@ -63,7 +63,7 @@ class Player:
         
         return False
     
-    def kick(self, ball_interface: BallInferface, target: pygame.math.Vector2, power: float) -> bool:
+    def kick(self, ball_interface: BallInterface, target: pygame.math.Vector2, power: float) -> bool:
         if self.can_kick(ball_interface) and self.is_facing_target(target):
             ball_interface.apply_kick(target, power)
             self.kick_cool_time = c.KICK_COOLDOWN
@@ -118,7 +118,7 @@ class Player:
 
         return angle_diff
 
-    def think(self, ball_interface: BallInferface, player_infos: list[PlayerInfo]) -> None:
+    def update_ai(self, ball_interface: BallInterface, player_infos: list[PlayerInfo]) -> None:
         # デフォルトではボールへ向かって移動し、近ければキックする
         self.run(ball_interface.pos)
         if self.can_kick(ball_interface):
@@ -127,9 +127,6 @@ class Player:
             ball_direction = my_direction.rotate(rand_angle)
             ball_target = ball_direction * 100 + self.pos
             self.kick(ball_interface, ball_target, c.MAX_BALL_SPEED)
-
-    def update_ai(self, ball_interface: BallInferface, player_infos: list[PlayerInfo]):
-        self.think(ball_interface, player_infos)
 
     def update(self, dt: float) -> None:
         # クールタイムを減らし、位置と向きを更新する
