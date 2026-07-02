@@ -4,11 +4,13 @@ import random
 import pygame
 import constants as c
 from ball import *
+from match_analysis import MatchAnalysis
 from typing import Any
 
 class Player:
-    def __init__(self, pos: pygame.math.Vector2, field_rect) -> None:
+    def __init__(self, player_id: int, pos: pygame.math.Vector2, field_rect) -> None:
         # プレイヤーの基本情報を初期化する
+        self.player_id: int = player_id
         self.pos: pygame.math.Vector2 = pos
         self.initial_pos: pygame.math.Vector2 = pygame.math.Vector2(pos)
 
@@ -118,15 +120,15 @@ class Player:
 
         return angle_diff
 
-    def update_ai(self, ball_interface: BallInterface, player_infos: list[PlayerInfo]) -> None:
+    def update_ai(self, match_analysis: MatchAnalysis) -> None:
         # デフォルトではボールへ向かって移動し、近ければキックする
-        self.run(ball_interface.pos)
-        if self.can_kick(ball_interface):
+        self.run(match_analysis.ball_interface.pos)
+        if self.can_kick(match_analysis.ball_interface):
             my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
             rand_angle = random.randint(-180, 180)
             ball_direction = my_direction.rotate(rand_angle)
             ball_target = ball_direction * 100 + self.pos
-            self.kick(ball_interface, ball_target, c.MAX_BALL_SPEED)
+            self.kick(match_analysis.ball_interface, ball_target, c.MAX_BALL_SPEED)
 
     def update(self, dt: float) -> None:
         # クールタイムを減らし、位置と向きを更新する
@@ -158,19 +160,3 @@ class Player:
         pygame.draw.line(screen, c.BLACK, (int(self.pos.x), int(self.pos.y)), (int(left_end_pos.x), int(left_end_pos.y)), 3)
 
 
-
-class PlayerInfo:
-    def __init__(self, player: Player):
-        self._player = player
-
-    @property
-    def pos(self):
-        return self._player.pos
-    
-    @property
-    def velocity(self):
-        return self._player.velocity
-    
-    @property
-    def team_id(self):
-        return self._player.team_id

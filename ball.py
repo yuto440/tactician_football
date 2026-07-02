@@ -45,18 +45,3 @@ class Ball:
     def draw(self, screen: "pygame.Surface") -> None:
         pygame.draw.circle(screen, c.WHITE, (int(self.pos.x), int(self.pos.y)), c.BALL_RADIUS)
 
-
-class BallInterface:
-    def __init__(self, ball: Ball):
-        self._ball = ball
-
-    @property
-    def pos(self):
-        return self._ball.pos.copy()
-    
-    @property
-    def velocity(self):
-        return self._ball.velocity.copy()
-    
-    def apply_kick(self, target:pygame.math.Vector2, power: float):
-        self._ball.apply_kick(target, power)

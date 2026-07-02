@@ -12,23 +12,20 @@ class KickingState(Enum):
     SHOT = auto()
 
 class FSMPlayer(Player):
-    def __init__(self, pos, field_rect: pygame.rect):
-        super().__init__(pos, field_rect)
+    def __init__(self, player_id: int, pos: pygame.math.Vector2, field_rect: pygame.rect):
+        super().__init__(player_id, pos, field_rect)
         # まずは守備に戻る状態から始める
         self.moving_state:MovingState = MovingState.DIFFENSE_RETURN
         self.Kicking_state:KickingState = None
         
 
-    def update_ai(self, ball_interface: BallInterface, player_infos: list[PlayerInfo]) -> None:
-        to_ball = ball_interface.pos - self.pos
-        dist_to_ball_sq = to_ball.length_squared()
-
-        self._update_state(dist_to_ball_sq, ball_interface, player_infos)
-        self._handle_kicking(ball_interface)
-        self._handle_movement(to_ball, dist_to_ball_sq, ball_interface)
+    def update_ai(self, match_analysis: MatchAnalysis) -> None:
+        self._update_state(match_analysis)
+        self._handle_kicking(match_analysis)
+        self._handle_movement(match_analysis)
 
 
-    def _update_state(self, dist_to_ball_sq: float, ball_interface: BallInterface, player_infos:list[PlayerInfo]):
+    def _update_state(self, match_analysis: MatchAnalysis):
         to_goal = self.goal_pos - self.pos
         dist_to_goal_sq = to_goal.length_squared()
 
@@ -45,21 +42,18 @@ class FSMPlayer(Player):
                 self.Kicking_state = None
 
                 # 自チーム内で最もボールに近い選手かどうかで役割を切り替える
-        self.moving_state = MovingState.OFFENSE_CHASE
-        for player in player_infos:
-            if player.team_id == self.team_id and (player.pos - self.pos).length_squared() > 0.01:
-                player_to_ball = ball_interface.pos - player.pos
-                dist_player_to_ball_sq = player_to_ball.length_squared()
-                if dist_player_to_ball_sq < dist_to_ball_sq:
-                    self.moving_state = MovingState.DIFFENSE_RETURN
-                    break
+        closest_player, _ = match_analysis.ball_proximity_list_by_team[0]
+        if closest_player.player_id == self.player_id:
+            self.moving_state = MovingState.OFFENSE_CHASE
+        else:
+            self.moving_state = MovingState.DIFFENSE_RETURN
 
 
-    def _handle_kicking(self, ball_interface:BallInterface):
-        if self.can_kick(ball_interface):
+    def _handle_kicking(self, match_analysis: MatchAnalysis):
+        if self.can_kick(match_analysis.ball_interface):
             match self.Kicking_state:
                 case KickingState.SHOT:
-                    if not self.kick(ball_interface, self.goal_pos, c.MAX_BALL_SPEED):
+                    if not self.kick(match_analysis.ball_interface, self.goal_pos, c.MAX_BALL_SPEED):
                         self.Kicking_state = None
                 case None:
                     my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
@@ -68,14 +62,14 @@ class FSMPlayer(Player):
                     ball_target = ball_direction * 100 + ball_interface.pos
                     self.kick(ball_interface, ball_target, c.MAX_BALL_SPEED)
 
-    def _handle_movement(self, to_ball: pygame.math.Vector2, dist_to_ball_sq: float, ball_interface: BallInterface):
+    def _handle_movement(self, match_analysis: MatchAnalysis):
                 # 状態に応じて移動先を決める
         match self.moving_state:
             case MovingState.OFFENSE_CHASE:  # ボールを追いかける
                 t = 0
-                coeff_a = ball_interface.velocity.length_squared() - c.PLAYER_SPEED ** 2
-                coeff_b = to_ball.dot(ball_interface.velocity)
-                coeff_c = dist_to_ball_sq
+                coeff_a = match_analysis.ball_interface.velocity.length_squared() - c.PLAYER_SPEED ** 2
+                coeff_b = match_analysis.player_to_ball_vectors[self.player_id].dot(match_analysis.ball_interface.velocity)
+                _, coeff_c = match_analysis.ball_proximity_list_by_id[self.player_id]
 
                 discriminant = coeff_b ** 2 - coeff_a * coeff_c
 
@@ -88,7 +82,7 @@ class FSMPlayer(Player):
 
                 t = min(max(0, t), 1)
 
-                predicted_ball_pos = ball_interface.pos + ball_interface.velocity * t
+                predicted_ball_pos = match_analysis.ball_interface.pos + match_analysis.ball_interface.velocity * t
                 self.run(predicted_ball_pos)
 
             case MovingState.DIFFENSE_RETURN:

@@ -3,9 +3,10 @@ import sys
 import constants as c
 from ball import *
 from player import *
+from infos import *
 from team import Team
 from ai_player import FSMPlayer
-import random
+from match_analysis import MatchAnalysis
 
 class GameController:
     def __init__(self):
@@ -41,12 +42,12 @@ class GameController:
 
         # 各チームにプレイヤーを配置する
         self.players: list[Player] = [
-            FSMPlayer(positions[1][0], self.field_rect),
-            FSMPlayer(positions[1][4], self.field_rect),
-            FSMPlayer(positions[3][2], self.field_rect),
-            FSMPlayer(positions[7][0], self.field_rect),
-            FSMPlayer(positions[7][4], self.field_rect),
-            FSMPlayer(positions[5][2], self.field_rect)
+            FSMPlayer(1, positions[1][0], self.field_rect),
+            FSMPlayer(2, positions[1][4], self.field_rect),
+            FSMPlayer(3, positions[3][2], self.field_rect),
+            FSMPlayer(4, positions[7][0], self.field_rect),
+            FSMPlayer(5, positions[7][4], self.field_rect),
+            FSMPlayer(6, positions[5][2], self.field_rect)
         ]
         self.num_players: int = len(self.players)
 
@@ -59,7 +60,7 @@ class GameController:
 
         self.player_infos: list[PlayerInfo] = [PlayerInfo(player) for player in self.players]
 
-
+        self.match_analysis = MatchAnalysis(self.teams, self.ball_interface, self.player_infos)
 
         self.post_poses: list[pygame.math.Vector2] = [
             pygame.math.Vector2(self.field_rect.left, self.field_rect.centery - c.GOAL_WIDTH / 2),
@@ -204,13 +205,15 @@ class GameController:
                 if event.type == pygame.QUIT:
                     running = False
 
+            self.match_analysis.update()
+
             self.resolve_collisions()
             self.goal_check()
             dt = self.clock.tick(c.FPS) / 1000.0
             self.ball.update(dt)
             
             for player in self.players:
-                player.update_ai(self.ball_interface, self.player_infos)
+                player.update_ai(self.match_analysis)
 
             for player in self.players:
                 player.update(dt)
