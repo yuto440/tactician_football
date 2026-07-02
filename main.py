@@ -9,6 +9,7 @@ import random
 
 class GameController:
     def __init__(self):
+        # pygameの初期化と画面・フィールドの準備
         if not pygame.get_init():
             pygame.init()
         
@@ -26,7 +27,8 @@ class GameController:
         self.teams: list[Team] = [Team(c.TeamID.TEAM_A, self.field_rect.right , c.RED), Team(c.TeamID.TEAM_B, self.field_rect.left ,c.BLUE)]
 
 
-        positions = []#フィールドを９×５のグリッドに分ける。プレイヤーの初期座標はこれで指定。
+        # フィールドを9×5のグリッドに分け、プレイヤーの初期位置を決める
+        positions = []
         for row in range(9):
             row_positions = []
             for col in range(5):
@@ -36,6 +38,7 @@ class GameController:
                 row_positions.append(pygame.math.Vector2(x, y))
             positions.append(row_positions)
 
+        # 各チームにプレイヤーを配置する
         self.players: list[Player] = [
             FSMPlayer(positions[1][0], self.field_rect),
             FSMPlayer(positions[1][4], self.field_rect),
@@ -69,13 +72,14 @@ class GameController:
         self.reset()
 
     def reset(self):
+        # ゲーム状態を初期化してボールを中央へ戻す
         for player in self.players:
             player.reset()
         self.ball.pos = pygame.math.Vector2(self.field_rect.center)
         self.ball.velocity = pygame.math.Vector2(0, 0)
         return None
 
-    def resolve_collisions(self): #衝突をまとめて解決
+    def resolve_collisions(self):  # 壁・ポスト・プレイヤー間の衝突をまとめて処理
         self._check_wall_and_ball()
         self._check_posts_and_ball()
         self._check_player_and_player()
@@ -147,6 +151,7 @@ class GameController:
                     player_1.pos += n_p0_to_p1 * overlap / 2
 
     def goal_check(self):
+        # ゴール判定を行い、得点したら試合をリセットする
         if self.ball.pos.x + c.BALL_RADIUS < self.teams[1].goal_pos_x:
             self.teams[1].score +=1
             self.reset()
@@ -157,6 +162,7 @@ class GameController:
                 
 
     def display(self):
+        # 画面を描画し直して現在の状態を表示する
         self.screen.fill(c.GRASS_COLOR)
 
         pygame.draw.line(self.screen, c.WHITE, (self.field_rect.centerx, self.field_rect.top), (self.field_rect.centerx, self.field_rect.bottom), c.LINE_WIDTH)
@@ -190,6 +196,7 @@ class GameController:
         return None
 
     def play_game(self):
+        # メインループ。入力処理・物理演算・描画を順に行う
         running = True
         while running:
             for event in pygame.event.get():

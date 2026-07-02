@@ -8,6 +8,7 @@ import constants as c
 
 class Team:
     def __init__(self, team_id: c.TeamID, goal_pos_x: int, color: Tuple[int, int, int]) -> None:
+        # チームごとのゴール位置・得点・所属プレイヤーを管理する
         self.team_id: c.TeamID = team_id
         self.goal_pos_x: int =goal_pos_x
         self.score: int = 0
@@ -15,6 +16,7 @@ class Team:
         self.color: Tuple[int, int, int] = color
 
     def add_player(self, player: Player) -> None:
+        # プレイヤーをチームに登録し、色やゴール位置を設定する
         self.players.append(player)
         player.color = self.color
         player.team_id = self.team_id

@@ -1,5 +1,6 @@
 from enum import Enum, auto
 
+# 画面とフィールドのサイズ
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT= 600
 
@@ -32,7 +33,7 @@ ELASTICITY = 0.8
 
 FPS = 60
 
-#色
+# 色設定
 GRASS_COLOR = (100, 255, 100)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)

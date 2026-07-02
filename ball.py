@@ -4,10 +4,12 @@ import random
 
 class Ball:
     def __init__(self, pos: pygame.math.Vector2) -> None:
+        # ボールの現在位置と速度を保持する
         self.pos: pygame.math.Vector2 = pos
         self.velocity: pygame.math.Vector2 = pygame.math.Vector2(0, 0)
 
     def apply_kick(self, target: pygame.math.Vector2, power: float):
+        # 速すぎるキックを制限し、指定ターゲットへ速度を与える
         power = min(power, c.MAX_BALL_SPEED)
         direction = target - self.pos
         
@@ -21,10 +23,12 @@ class Ball:
 
 
     def update(self, dt: float) -> None:
+        # 摩擦を適用した後にボールを移動させる
         self.apply_friction(dt)
         self.pos += self.velocity * dt
 
     def apply_friction(self, dt: float) -> None:
+        # 時間経過に応じてボールの速度を減衰させる
         speed_sq = self.velocity.length_squared()
 
         if speed_sq == 0:

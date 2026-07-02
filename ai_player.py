@@ -2,6 +2,7 @@ from enum import Enum, auto
 from player import *
 from ball import *
 
+# AIプレイヤーの行動状態を定義する
 class State(Enum):
     OFFENSE_CHASE = auto()
     DIFFENSE_RETURN = auto()
@@ -10,10 +11,12 @@ class State(Enum):
 class FSMPlayer(Player):
     def __init__(self, pos, field_rect: pygame.rect):
         super().__init__(pos, field_rect)
+        # まずは守備に戻る状態から始める
         self.state = State.DIFFENSE_RETURN
         
 
     def think(self, ball_interface, player_infos) -> None:
+        # ボールを蹴れるなら、ランダムな方向へショットする
         if self.can_kick(ball_interface):
             my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
             rand_angle = random.randint(-180, 180)
@@ -24,7 +27,7 @@ class FSMPlayer(Player):
         to_ball = ball_interface.pos - self.pos
         dist_to_ball_sq = to_ball.length_squared()
 
-        #チームの中で一番ボールに近くなければDIFFENSE_RETURN
+        # 自チーム内で最もボールに近い選手かどうかで役割を切り替える
         self.state = State.OFFENSE_CHASE
         for player in player_infos:
             if player.team_id == self.team_id:
@@ -35,8 +38,9 @@ class FSMPlayer(Player):
                     break
 
 
+        # 状態に応じて移動先を決める
         match self.state:
-            case State.OFFENSE_CHASE:#ボールを追いかける
+            case State.OFFENSE_CHASE:  # ボールを追いかける
                 t = 0
                 coeff_a = ball_interface.velocity.length_squared() - c.PLAYER_SPEED ** 2
                 coeff_b = to_ball.dot(ball_interface.velocity)

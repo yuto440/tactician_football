@@ -8,6 +8,7 @@ from typing import Any
 
 class Player:
     def __init__(self, pos: pygame.math.Vector2, field_rect) -> None:
+        # プレイヤーの基本情報を初期化する
         self.pos: pygame.math.Vector2 = pos
         self.initial_pos: pygame.math.Vector2 = pygame.math.Vector2(pos)
 
@@ -35,6 +36,7 @@ class Player:
         self.kick_cool_time = 0
 
     def can_kick(self, ball_interface: BallInferface) -> bool:
+        # クールタイムと距離・角度から、ボールを蹴れるか判定する
         if self.kick_cool_time > 0: return False
 
         to_ball = ball_interface.pos - self.pos
@@ -71,6 +73,7 @@ class Player:
 
 
     def run(self, target_pos: pygame.math.Vector2):
+        # 指定位置へ向きを合わせながら移動速度を決める
         self.turn_towards(target_pos)
         to_target_pos = target_pos - self.pos
         distance_sq = to_target_pos.length_squared()
@@ -92,6 +95,7 @@ class Player:
         self.velocity = target_dir * current_speed
 
     def turn_towards(self, target:pygame.math.Vector2):
+        # 目標方向に向きを変えるための角度差を計算する
         to_target = target - self.pos
 
         if to_target.length_squared() < 0.01:
@@ -115,6 +119,7 @@ class Player:
         return angle_diff
 
     def think(self, ball_interface: BallInferface, player_infos: list[PlayerInfo]) -> None:
+        # デフォルトではボールへ向かって移動し、近ければキックする
         self.run(ball_interface.pos)
         if self.can_kick(ball_interface):
             my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
@@ -127,6 +132,7 @@ class Player:
         self.think(ball_interface, player_infos)
 
     def update(self, dt: float) -> None:
+        # クールタイムを減らし、位置と向きを更新する
         if self.kick_cool_time > 0.0:
             self.kick_cool_time = max(0.0, self.kick_cool_time - dt)
 
