@@ -28,6 +28,8 @@ class Player:
 
         self.color: tuple[int, int, int] = c.BLACK
 
+        self.ball_interface: BallInterface = None
+
         self.kick_cool_time: float = 0.0
 
     def reset(self) -> None:

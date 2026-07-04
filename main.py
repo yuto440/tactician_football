@@ -51,6 +51,9 @@ class GameController:
         ]
         self.num_players: int = len(self.players)
 
+        for p in self.players:
+            p.ball_interface = self.ball_interface
+
         self.teams[0].add_player(self.players[0])
         self.teams[0].add_player(self.players[1])
         self.teams[0].add_player(self.players[2])
