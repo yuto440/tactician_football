@@ -40,5 +40,8 @@ class BallInterface:
     def velocity(self):
         return self._ball.velocity.copy()
     
-    def apply_kick(self, target:pygame.math.Vector2, power: float):
-        self._ball.apply_kick(target, power)
+    def apply_kick_target(self, target:pygame.math.Vector2, power: float):
+        self._ball.apply_kick_target(target, power)
+
+    def applay_kick_direction(self, direction: pygame.math.Vector2, power: float):
+        self._ball.apply_kick_direction(direction, power)

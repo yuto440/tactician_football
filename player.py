@@ -66,9 +66,25 @@ class Player:
         
         return False
     
-    def kick(self, ball_interface: BallInterface, target: pygame.math.Vector2, power: float) -> bool:
+    def is_facing_direction(self, direction: pygame.math.Vector2):
+        forward_vec = pygame.math.Vector2(1, 0).rotate(self.angle)
+
+        relative_angle = forward_vec.angle_to(direction)
+        relative_angle = (relative_angle + 180) % 360 -180
+
+        return abs(relative_angle) <= c.KICKABLE_ANGLE
+    
+    def kick_to_position(self, ball_interface: BallInterface, target: pygame.math.Vector2, power: float) -> bool:
         if self.can_kick(ball_interface) and self.is_facing_target(target):
-            ball_interface.apply_kick(target, power)
+            ball_interface.apply_kick_target(target, power)
+            self.kick_cool_time = c.KICK_COOLDOWN
+            return True
+        
+        return False
+    
+    def kick_in_direction(self, ball_interface: BallInterface, direction: pygame.math.Vector2, power: float) -> bool:
+        if self.can_kick(ball_interface) and self.is_facing_direction(direction):
+            ball_interface.applay_kick_direction(direction, power)
             self.kick_cool_time = c.KICK_COOLDOWN
             return True
         
@@ -128,8 +144,7 @@ class Player:
             my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
             rand_angle = random.randint(-180, 180)
             ball_direction = my_direction.rotate(rand_angle)
-            ball_target = ball_direction * 100 + self.pos
-            self.kick(match_analysis.ball_interface, ball_target, c.MAX_BALL_SPEED)
+            self.kick_in_direction(ball_direction, c.MAX_BALL_SPEED)
 
     def update(self, dt: float) -> None:
         # クールタイムを減らし、位置と向きを更新する

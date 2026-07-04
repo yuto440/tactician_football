@@ -54,14 +54,13 @@ class FSMPlayer(Player):
         if self.can_kick(match_analysis.ball_interface):
             match self.Kicking_state:
                 case KickingState.SHOT:
-                    if not self.kick(match_analysis.ball_interface, self.goal_pos, c.MAX_BALL_SPEED):
+                    if not self.kick_to_position(match_analysis.ball_interface, self.goal_pos, c.MAX_BALL_SPEED):
                         self.Kicking_state = None
                 case None:
                     my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
                     rand_angle = random.randint(-180, 180)
                     ball_direction = my_direction.rotate(rand_angle)
-                    ball_target = ball_direction * 100 + match_analysis.ball_interface.pos
-                    self.kick(match_analysis.ball_interface, ball_target, c.MAX_BALL_SPEED)
+                    self.kick_in_direction(match_analysis.ball_interface, ball_direction, c.MAX_BALL_SPEED)
 
     def _handle_movement(self, match_analysis: MatchAnalysis):
                 # 状態に応じて移動先を決める

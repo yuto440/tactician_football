@@ -61,7 +61,6 @@ class GameController:
         self.player_infos: list[PlayerInfo] = [PlayerInfo(player) for player in self.players]
 
         self.match_analysis = MatchAnalysis(self.teams, self.ball_interface, self.player_infos)
-        self.match_analysis.update()
         
         self.post_poses: list[pygame.math.Vector2] = [
             pygame.math.Vector2(self.field_rect.left, self.field_rect.centery - c.GOAL_WIDTH / 2),
@@ -212,12 +211,13 @@ class GameController:
             self.ball.update(dt)
             
             for player in self.players:
-                player.update_ai(self.match_analysis)
-
-            for player in self.players:
                 player.update(dt)
 
             self.match_analysis.update()
+
+            for player in self.players:
+                player.update_ai(self.match_analysis)
+
 
             self.display()
 

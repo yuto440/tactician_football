@@ -8,18 +8,22 @@ class Ball:
         self.pos: pygame.math.Vector2 = pos
         self.velocity: pygame.math.Vector2 = pygame.math.Vector2(0, 0)
 
-    def apply_kick(self, target: pygame.math.Vector2, power: float):
-        # 速すぎるキックを制限し、指定ターゲットへ速度を与える
+    def apply_kick_direction(self, direction:pygame.math.Vector2, power):
         power = min(power, c.MAX_BALL_SPEED)
-        direction = target - self.pos
-        
+
         if direction.length_squared() > 0.01:
             self.velocity = direction.normalize() * power
         else:
             self.velocity = pygame.math.Vector2(0, 0)
 
-        random_angle = random.uniform(-1, 1)
-        self.velocity.rotate(random_angle)
+        rrandom_angle = random.uniform(-1, 1)
+        self.velocity.rotate(rrandom_angle)
+
+    def apply_kick_target(self, target: pygame.math.Vector2, power: float):
+        # 速すぎるキックを制限し、指定ターゲットへ速度を与える
+        direction = target - self.pos
+        
+        self.apply_kick_direction(direction, power)
 
 
     def update(self, dt: float) -> None:
