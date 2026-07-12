@@ -4,9 +4,9 @@ import random
 import pygame
 import constants as c
 from ball import *
-from infos import BallInterface
+from infos import BallInfo
 from match_analysis import MatchAnalysis
-from typing import Any
+from typing import Any, NamedTuple
 
 class Player:
     def __init__(self, player_id: int, pos: pygame.math.Vector2, field_rect) -> None:
@@ -21,14 +21,14 @@ class Player:
 
         self.turn_speed: float = 0
 
+        self.kick_intent: KickIntent = None
+
         self.team_id: c.TeamID = None
         self.goal_pos: pygame.math.Vector2 = None
 
         self.field_rect: pygame.rect = field_rect
 
         self.color: tuple[int, int, int] = c.BLACK
-
-        self.ball_interface: BallInterface = None
 
         self.kick_cool_time: float = 0.0
 
@@ -40,11 +40,11 @@ class Player:
             _, self.angle = goal_dir.as_polar()
         self.kick_cool_time = 0
 
-    def can_kick(self, ball_interface: BallInterface) -> bool:
+    def can_kick(self, ball_info: BallInfo) -> bool:
         # クールタイムと距離・角度から、ボールを蹴れるか判定する
         if self.kick_cool_time > 0: return False
 
-        to_ball = ball_interface.pos - self.pos
+        to_ball = ball_info.pos - self.pos
         dist_to_ball, to_ball_angle = to_ball.as_polar()
         reach_magin = 3.0
         min_dist = (c.BALL_RADIUS + c.PLAYER_RADIUS + reach_magin)
@@ -76,21 +76,12 @@ class Player:
 
         return abs(relative_angle) <= c.KICKABLE_ANGLE
     
-    def kick_to_position(self, ball_interface: BallInterface, target: pygame.math.Vector2, power: float) -> bool:
-        if self.can_kick(ball_interface) and self.is_facing_target(target):
-            ball_interface.apply_kick_target(target, power)
-            self.kick_cool_time = c.KICK_COOLDOWN
-            return True
-        
-        return False
-    
-    def kick_in_direction(self, ball_interface: BallInterface, direction: pygame.math.Vector2, power: float) -> bool:
-        if self.can_kick(ball_interface) and self.is_facing_direction(direction):
-            ball_interface.applay_kick_direction(direction, power)
-            self.kick_cool_time = c.KICK_COOLDOWN
-            return True
-        
-        return False
+    def kick_in_direction(self, direction: pygame.math.Vector2, power: float) -> None:
+        self.kick_intent.direction = direction
+        self.kick_intent.power = power
+
+    def kick_to_target(self, target: pygame.math.Vector2, power:float) -> None:
+        pass
 
 
     def run(self, target_pos: pygame.math.Vector2):
@@ -141,8 +132,8 @@ class Player:
 
     def update_ai(self, match_analysis: MatchAnalysis) -> None:
         # デフォルトではボールへ向かって移動し、近ければキックする
-        self.run(match_analysis.ball_interface.pos)
-        if self.can_kick(match_analysis.ball_interface):
+        self.run(match_analysis.ball_info.pos)
+        if self.can_kick(match_analysis.ball_info):
             my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
             rand_angle = random.randint(-180, 180)
             ball_direction = my_direction.rotate(rand_angle)
@@ -177,4 +168,7 @@ class Player:
         pygame.draw.line(screen, c.BLACK, (int(self.pos.x), int(self.pos.y)), (int(right_end_pos.x), int(right_end_pos.y)), 3)
         pygame.draw.line(screen, c.BLACK, (int(self.pos.x), int(self.pos.y)), (int(left_end_pos.x), int(left_end_pos.y)), 3)
 
-
+class KickIntent(NamedTuple):
+    player_id: int
+    direction: pygame.math.Vector2
+    power: float

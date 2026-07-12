@@ -28,7 +28,7 @@ class FSMPlayer(Player):
 
     def update(self, dt):
         self._handle_movement()
-        self._handle_kicking(self.ball_interface)
+        self._handle_kicking(self.ball_info)
         return super().update(dt)
 
 
@@ -57,17 +57,17 @@ class FSMPlayer(Player):
             self.moving_state = MovingState.DIFFENSE_RETURN
 
 
-    def _handle_kicking(self, ball_interface: BallInterface):
-        if self.can_kick(ball_interface):
+    def _handle_kicking(self, ball_info: BallInfo):
+        if self.can_kick(ball_info):
             match self.Kicking_state:
                 case KickingState.SHOT:
-                    if not self.kick_to_position(ball_interface, self.goal_pos, c.MAX_BALL_SPEED):
+                    if not self.kick_to_position(ball_info, self.goal_pos, c.MAX_BALL_SPEED):
                         self.Kicking_state = None
                 case None:
                     my_direction = pygame.math.Vector2(1, 0).rotate(self.angle)
                     rand_angle = random.randint(-180, 180)
                     ball_direction = my_direction.rotate(rand_angle)
-                    self.kick_in_direction(ball_interface, ball_direction, c.MAX_BALL_SPEED)
+                    self.kick_in_direction(ball_info, ball_direction, c.MAX_BALL_SPEED)
 
     def _handle_movement(self):
                 # 状態に応じて移動先を決める
@@ -104,6 +104,6 @@ class PlayerPerception:
         self.ball_proximity_ranking = match_analysis.ball_proximity_ranking
         self.ball_proximity_ranking_by_team = match_analysis.ball_proximity_ranking_by_team[team_id]
 
-        self.ball_pos = match_analysis.ball_interface.pos
-        self.ball_velocity = match_analysis.ball_interface.velocity
+        self.ball_pos = match_analysis.ball_info.pos
+        self.ball_velocity = match_analysis.ball_info.velocity
         self.ball_speed_sq = self.ball_velocity.length_squared()

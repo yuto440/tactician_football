@@ -28,7 +28,7 @@ class PlayerInfo:
         return self._player.team_id
     
     
-class BallInterface:
+class BallInfo:
     def __init__(self, ball: Ball):
         self._ball = ball
 
@@ -39,9 +39,3 @@ class BallInterface:
     @property
     def velocity(self):
         return self._ball.velocity.copy()
-    
-    def apply_kick_target(self, target:pygame.math.Vector2, power: float):
-        self._ball.apply_kick_target(target, power)
-
-    def applay_kick_direction(self, direction: pygame.math.Vector2, power: float):
-        self._ball.apply_kick_direction(direction, power)

@@ -23,7 +23,7 @@ class GameController:
         self.field_rect.center = self.screen.get_rect().center
 
         self.ball: Ball = Ball(pygame.math.Vector2(c.SCREEN_WIDTH // 2, c.SCREEN_HEIGHT // 2))  # ボールの生成
-        self.ball_interface = BallInterface(self.ball)
+        self.ball_info = BallInfo(self.ball)
 
         self.teams: list[Team] = [Team(c.TeamID.TEAM_A, pygame.math.Vector2(self.field_rect.midright) , c.RED),
                                 Team(c.TeamID.TEAM_B, pygame.math.Vector2(self.field_rect.midleft) ,c.BLUE)]
@@ -52,7 +52,7 @@ class GameController:
         self.num_players: int = len(self.players)
 
         for p in self.players:
-            p.ball_interface = self.ball_interface
+            p.ball_info = self.ball_info
 
         self.teams[0].add_player(self.players[0])
         self.teams[0].add_player(self.players[1])
@@ -63,7 +63,7 @@ class GameController:
 
         self.player_infos: list[PlayerInfo] = [PlayerInfo(player) for player in self.players]
 
-        self.match_analysis = MatchAnalysis(self.teams, self.ball_interface, self.player_infos)
+        self.match_analysis = MatchAnalysis(self.teams, self.ball_info, self.player_infos)
         
         self.post_poses: list[pygame.math.Vector2] = [
             pygame.math.Vector2(self.field_rect.left, self.field_rect.centery - c.GOAL_WIDTH / 2),
@@ -154,6 +154,12 @@ class GameController:
 
                     player_0.pos -= n_p0_to_p1 * overlap / 2
                     player_1.pos += n_p0_to_p1 * overlap / 2
+
+    def resolve_kick(self):
+        #ボールに触れられるプレイヤーがいたらキックの意思を確認し、それを処理する。
+        for player_info, distance in self.match_analysis.ball_proximity_ranking:
+            if distance <= c.KICKABLE_DISTANCE:
+                
 
     def goal_check(self):
         # ゴール判定を行い、得点したら試合をリセットする
