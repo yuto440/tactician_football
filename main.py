@@ -159,6 +159,7 @@ class GameController:
         #ボールに触れられるプレイヤーがいたらキックの意思を確認し、それを処理する。
         for player_info, distance in self.match_analysis.ball_proximity_ranking:
             if distance <= c.KICKABLE_DISTANCE:
+                pass
                 
 
     def goal_check(self):
